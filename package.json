@@ -24,7 +24,13 @@
     "docker:down": "docker-compose down"
   },
   "devDependencies": {
+    "@expense-tracker/eslint-config": "*",
     "@turbo/gen": "^2.1.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "prettier": "^3.0.0",
     "turbo": "^2.1.0",
     "typescript": "^5.2.2"
