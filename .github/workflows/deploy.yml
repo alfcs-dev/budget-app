@@ -1,13 +1,24 @@
-name: Deploy to Digital Ocean
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
 
 jobs:
-  test:
+  # This job runs on both PRs and main branch
+  test-and-build:
+    name: Test, Lint & Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,10 +44,12 @@ jobs:
       - name: Build applications
         run: npm run build
 
+  # This job only runs on main branch pushes (after PR merge)
   deploy:
-    needs: test
+    name: Deploy to Digital Ocean
+    needs: test-and-build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
       - uses: actions/checkout@v4
