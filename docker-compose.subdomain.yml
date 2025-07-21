@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Frontend (React) - Accessible via host nginx
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "3010:80"  # Different port to avoid conflicts
+    networks:
+      - expense-tracker-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend (NestJS) - Accessible via host nginx  
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - FRONTEND_URL=${FRONTEND_URL}
+    ports:
+      - "3011:3001"  # Different port to avoid conflicts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - expense-tracker-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-expense_tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - expense-tracker-network
+    ports:
+      - "5433:5432"  # Use different port to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Database backup service
+  postgres-backup:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-expense_tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+    volumes:
+      - ./backups:/backups
+    networks:
+      - expense-tracker-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+      while true; do
+        sleep 86400
+        pg_dump -h postgres -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-expense_tracker} > /backups/expense_tracker_backup_$$(date +%Y%m%d_%H%M%S).sql
+        find /backups -name 'expense_tracker_backup_*.sql' -mtime +7 -delete
+      done
+      "
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  expense-tracker-network:
+    driver: bridge
