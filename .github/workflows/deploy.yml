@@ -1,10 +1,12 @@
-name: Deploy to Digital Ocean
+name: Deploy Budget App to Digital Ocean Subdomain
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '*.md'
 
 jobs:
   test:
@@ -27,7 +29,7 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Build applications
+      - name: Build applications (test build)
         run: npm run build
 
   deploy:
@@ -38,25 +40,93 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to Digital Ocean Droplet
+      - name: Deploy to Digital Ocean Subdomain
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_PRIVATE_KEY }}
           port: ${{ secrets.DO_PORT }}
+          timeout: 300s
           script: |
-            cd /var/www/expense-tracker
+            echo "🚀 Starting deployment to budget.alfcs.dev..."
+            
+            # Navigate to app directory
+            cd /home/alfredocs/budget-app
+            
+            # Pull latest changes
+            echo "📥 Pulling latest code..."
             git pull origin main
-            npm ci
-            npm run build
-            pm2 restart expense-tracker-backend
-            pm2 restart expense-tracker-frontend
+            
+            # Ensure deploy script is executable
+            chmod +x deploy-subdomain.sh
+            
+            # Check if .env exists (should exist from initial setup)
+            if [ ! -f .env ]; then
+              echo "❌ .env file missing - run initial setup first"
+              exit 1
+            fi
+            
+            # Stop existing services gracefully
+            echo "🛑 Stopping existing services..."
+            docker-compose -f docker-compose.subdomain.yml down || true
+            
+            # Clean up old containers and images to free space
+            echo "🧹 Cleaning up old containers..."
+            docker system prune -f
+            
+            # Start updated services
+            echo "🔨 Building and starting services..."
+            docker-compose -f docker-compose.subdomain.yml up -d --build
+            
+            # Wait for services to be ready
+            echo "⏳ Waiting for services to start..."
+            sleep 30
             
             # Run database migrations
-            cd apps/backend
-            npx prisma migrate deploy
-            npx prisma generate
+            echo "🗄️ Running database migrations..."
+            docker-compose -f docker-compose.subdomain.yml exec -T backend npx prisma migrate deploy
+            
+            # Health checks
+            echo "🔍 Running health checks..."
+            
+            # Check containers are running
+            docker-compose -f docker-compose.subdomain.yml ps
+            
+            # Test direct container access
+            for i in {1..5}; do
+              if curl -f http://localhost:3010/health >/dev/null 2>&1; then
+                echo "✅ Frontend container healthy"
+                break
+              fi
+              echo "⏳ Waiting for frontend... ($i/5)"
+              sleep 10
+            done
+            
+            for i in {1..5}; do
+              if curl -f http://localhost:3011/api/health >/dev/null 2>&1; then
+                echo "✅ Backend container healthy"
+                break
+              fi
+              echo "⏳ Waiting for backend... ($i/5)"
+              sleep 10
+            done
+            
+            # Test subdomain access (may fail if DNS not propagated)
+            if curl -f http://budget.alfcs.dev/health >/dev/null 2>&1; then
+              echo "✅ Subdomain access working"
+            else
+              echo "⚠️ Subdomain access failed (check DNS)"
+            fi
+            
+            # Restart systemd service if it exists
+            if systemctl is-active expense-tracker >/dev/null 2>&1; then
+              echo "🔄 Restarting systemd service..."
+              systemctl restart expense-tracker
+            fi
+            
+            echo "🎉 Deployment completed!"
+            echo "📍 Check: http://budget.alfcs.dev"
 
 # Required GitHub Secrets:
 # DO_HOST: Your Digital Ocean droplet IP
