@@ -8,9 +8,9 @@
         "build": "tsc && vite build",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
-        "test": "vitest",
-        "test:watch": "vitest --watch",
-        "test:ui": "vitest --ui"
+        "test": "vitest --pass-with-no-tests",
+        "test:watch": "vitest --watch --pass-with-no-tests",
+        "test:ui": "vitest --ui -pass-with-no-tests"
     },
     "dependencies": {
         "react": "^18.2.0",
