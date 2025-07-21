@@ -1,0 +1,65 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Build applications
+        run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Digital Ocean Droplet
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_PRIVATE_KEY }}
+          port: ${{ secrets.DO_PORT }}
+          script: |
+            cd /var/www/expense-tracker
+            git pull origin main
+            npm ci
+            npm run build
+            pm2 restart expense-tracker-backend
+            pm2 restart expense-tracker-frontend
+            
+            # Run database migrations
+            cd apps/backend
+            npx prisma migrate deploy
+            npx prisma generate
+
+# Required GitHub Secrets:
+# DO_HOST: Your Digital Ocean droplet IP
+# DO_USERNAME: Your droplet username (usually root)
+# DO_PRIVATE_KEY: Your SSH private key
+# DO_PORT: SSH port (usually 22)
