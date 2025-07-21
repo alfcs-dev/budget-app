@@ -37,7 +37,152 @@ Internet → Digital Ocean Droplet
 - ✅ **Database Backups**: Daily automated backups
 - ✅ **Security**: Rate limiting, security headers, firewall ready
 
-## 🚀 **Deployment Methods**
+## 🏗️ **First Time Setup (Required)**
+
+Before deploying, you need to prepare your Digital Ocean droplet. This is a **one-time setup**.
+
+### **Step 1: Create Digital Ocean Droplet**
+
+1. **Create a new droplet:**
+   - Ubuntu 22.04 LTS (recommended)
+   - Minimum: 2 GB RAM, 1 vCPU, 50 GB SSD
+   - Recommended: 4 GB RAM, 2 vCPU, 80 GB SSD
+
+2. **Configure SSH access:**
+   ```bash
+   # Test SSH connection
+   ssh root@your.droplet.ip.address
+   ```
+
+### **Step 2: Install Docker & Dependencies**
+
+Run these commands on your droplet:
+
+```bash
+# Update system
+apt update && apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+
+# Install Docker Compose
+curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# Verify installations
+docker --version
+docker-compose --version
+
+# Install git and other utilities
+apt install -y git curl nano htop ufw
+
+# Setup firewall
+ufw allow ssh
+ufw allow 80
+ufw allow 443
+ufw --force enable
+```
+
+### **Step 3: Clone Your Repository**
+
+```bash
+# Create app directory
+mkdir -p /var/www/expense-tracker
+cd /var/www/expense-tracker
+
+# Clone your repository
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git .
+
+# Make deploy script executable
+chmod +x deploy.sh
+```
+
+### **Step 4: Configure Environment**
+
+```bash
+# Copy environment template
+cp .env.production .env
+
+# Edit environment file
+nano .env
+```
+
+**Required values to update in .env:**
+```bash
+# Generate a secure password (use: openssl rand -base64 32)
+POSTGRES_PASSWORD=your_generated_secure_password_here
+
+# Generate JWT secret (use: openssl rand -base64 64)
+JWT_SECRET=your_generated_jwt_secret_here
+
+# Update with your domain (optional for IP-based access)
+FRONTEND_URL=https://your-domain.com
+```
+
+### **Step 5: Initial Database Setup**
+
+```bash
+# Start only the database first
+docker-compose -f docker-compose.prod.yml up -d postgres
+
+# Wait for database to be ready (about 30 seconds)
+sleep 30
+
+# Check database health
+docker-compose -f docker-compose.prod.yml logs postgres
+
+# The database is ready when you see: "database system is ready to accept connections"
+```
+
+### **Step 6: Run Initial Migration**
+
+```bash
+# Build backend container (needed for migrations)
+docker-compose -f docker-compose.prod.yml build backend
+
+# Run database migration to create tables
+docker-compose -f docker-compose.prod.yml run --rm backend npx prisma migrate deploy
+
+# Verify migration worked
+docker-compose -f docker-compose.prod.yml exec postgres psql -U postgres -d expense_tracker -c "\dt"
+```
+
+You should see output showing your database tables (users, accounts, categories, etc.).
+
+### **Step 7: First Deployment**
+
+```bash
+# Now start all services
+docker-compose -f docker-compose.prod.yml up -d
+
+# Check all services are running
+docker-compose -f docker-compose.prod.yml ps
+
+# View logs to ensure everything started correctly
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+### **Step 8: Verify Deployment**
+
+```bash
+# Test health endpoints
+curl http://localhost/health
+curl http://localhost/api/health
+
+# Check your external IP
+curl -4 ifconfig.me
+
+# Your app should be accessible at: http://YOUR_DROPLET_IP
+```
+
+**🎉 First time setup complete!** Your expense tracker is now running.
+
+---
+
+## 🚀 **Deployment Methods (After Initial Setup)**
+
+Once you've completed the first-time setup above, you can use these methods for updates:
 
 ### **Method 1: Automated CI/CD (Recommended)**
 
