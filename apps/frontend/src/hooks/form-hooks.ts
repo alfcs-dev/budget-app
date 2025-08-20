@@ -105,19 +105,19 @@ export const useExpenseUpdateForm = (
 };
 
 // Form validation helpers
-export const getFormErrorMessage = (errors: any, fieldName: string): string | undefined => {
+export const getFormErrorMessage = (errors: Record<string, Error>, fieldName: string): string | undefined => {
   const error = errors[fieldName];
   return error?.message;
 };
 
-export const hasFormError = (errors: any, fieldName: string): boolean => {
+export const hasFormError = (errors: Record<string, Error>, fieldName: string): boolean => {
   return !!errors[fieldName];
 };
 
 // Field validation states for UI
 export const getFieldValidationState = (
   fieldName: string,
-  errors: any,
+  errors: Record<string, Error>,
   isDirty: boolean,
   isSubmitted: boolean
 ): 'default' | 'error' | 'success' => {

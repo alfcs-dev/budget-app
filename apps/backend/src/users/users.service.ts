@@ -19,7 +19,10 @@ export class UsersService {
 
     // Hash password before storing
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
+    const hashedPassword = await bcrypt.hash(
+      validatedData.password,
+      saltRounds,
+    );
 
     const user = await this.prisma.user.create({
       data: {
@@ -29,6 +32,7 @@ export class UsersService {
     });
 
     // Return user without password
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
@@ -69,7 +73,10 @@ export class UsersService {
     });
   }
 
-  async update(id: string, updateData: UpdateUser): Promise<Omit<User, 'password'>> {
+  async update(
+    id: string,
+    updateData: UpdateUser,
+  ): Promise<Omit<User, 'password'>> {
     // Validate input using shared schema
     const validatedData = UpdateUserSchema.parse(updateData);
 
@@ -77,7 +84,10 @@ export class UsersService {
     const dataToUpdate = { ...validatedData };
     if (validatedData.password) {
       const saltRounds = 10;
-      dataToUpdate.password = await bcrypt.hash(validatedData.password, saltRounds);
+      dataToUpdate.password = await bcrypt.hash(
+        validatedData.password,
+        saltRounds,
+      );
     }
 
     const user = await this.prisma.user.update({
@@ -86,6 +96,7 @@ export class UsersService {
     });
 
     // Return user without password
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }

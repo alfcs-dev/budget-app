@@ -10,7 +10,10 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
-import { CreateAccountSchema, UpdateAccountSchema } from '@budget-manager/database';
+import {
+  CreateAccountSchema,
+  UpdateAccountSchema,
+} from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
 
 @Controller('accounts')

@@ -37,7 +37,9 @@ async function bootstrap() {
   // Swagger documentation setup
   const config = new DocumentBuilder()
     .setTitle('Budget Manager API')
-    .setDescription('Personal expense tracking and budget management API with shared database package')
+    .setDescription(
+      'Personal expense tracking and budget management API with shared database package',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -50,7 +52,11 @@ async function bootstrap() {
 
   console.log(`🚀 Backend running at http://localhost:${port}`);
   console.log(`📚 API Documentation available at http://localhost:${port}/api`);
-  console.log(`🌍 Environment: ${configService.get('NODE_ENV') || 'development'}`);
-  console.log(`🔗 CORS enabled for: ${configService.get('FRONTEND_URL') || 'http://localhost:3000'}`);
+  console.log(
+    `🌍 Environment: ${configService.get('NODE_ENV') || 'development'}`,
+  );
+  console.log(
+    `🔗 CORS enabled for: ${configService.get('FRONTEND_URL') || 'http://localhost:3000'}`,
+  );
 }
 bootstrap();

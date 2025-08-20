@@ -18,7 +18,7 @@ import {
 } from '@budget-manager/database';
 
 // API Base Configuration
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = (import.meta as { env?: Record<string, string> }).env?.VITE_API_URL || 'http://localhost:3001/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -235,11 +235,11 @@ export const healthApi = {
 };
 
 // Error handling helper
-export const isApiError = (error: any): error is { response: { data: ApiError } } => {
-  return error?.response?.data?.message !== undefined;
+export const isApiError = (error: Error | unknown): error is { response: { data: ApiError } } => {
+  return typeof error === 'object' && error !== null && 'response' in error;
 };
 
-export const getApiErrorMessage = (error: any): string => {
+export const getApiErrorMessage = (error: Error | unknown): string => {
   if (isApiError(error)) {
     const apiError = error.response.data;
     if (apiError.errors && apiError.errors.length > 0) {
@@ -247,7 +247,10 @@ export const getApiErrorMessage = (error: any): string => {
     }
     return apiError.message;
   }
-  return error.message || 'An unexpected error occurred';
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'An unexpected error occurred';
 };
 
 export default apiClient;

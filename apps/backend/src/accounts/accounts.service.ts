@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateAccountSchema,
@@ -24,9 +28,15 @@ export class AccountsService {
       select: { accountName: true, userId: true },
     });
 
-    if (!validateUniqueAccountName(validatedData.accountName, validatedData.userId, existingAccounts)) {
+    if (
+      !validateUniqueAccountName(
+        validatedData.accountName,
+        validatedData.userId,
+        existingAccounts,
+      )
+    ) {
       throw new BadRequestException(
-        `Account name "${validatedData.accountName}" already exists for this user`
+        `Account name "${validatedData.accountName}" already exists for this user`,
       );
     }
 
@@ -94,9 +104,15 @@ export class AccountsService {
         select: { accountName: true, userId: true },
       });
 
-      if (!validateUniqueAccountName(validatedData.accountName, account.userId, existingAccounts)) {
+      if (
+        !validateUniqueAccountName(
+          validatedData.accountName,
+          account.userId,
+          existingAccounts,
+        )
+      ) {
         throw new BadRequestException(
-          `Account name "${validatedData.accountName}" already exists for this user`
+          `Account name "${validatedData.accountName}" already exists for this user`,
         );
       }
     }
@@ -114,7 +130,9 @@ export class AccountsService {
   }
 
   // Business logic methods using shared utilities
-  async getAccountBalance(id: string): Promise<{ accountId: string; balance: number; calculated: number }> {
+  async getAccountBalance(
+    id: string,
+  ): Promise<{ accountId: string; balance: number; calculated: number }> {
     const account = await this.prisma.account.findUnique({
       where: { id },
       include: {
@@ -130,12 +148,22 @@ export class AccountsService {
 
     // Calculate balance using shared utility
     const transactions = [
-      ...account.expenses.map(exp => ({ amount: exp.amount, type: 'expense' as const })),
-      ...account.sourceTransfers.map(transfer => ({ amount: transfer.amount, type: 'expense' as const })),
-      ...account.destTransfers.map(transfer => ({ amount: transfer.amount, type: 'income' as const })),
+      ...account.expenses.map((exp) => ({
+        amount: exp.amount,
+        type: 'expense' as const,
+      })),
+      ...account.sourceTransfers.map((transfer) => ({
+        amount: transfer.amount,
+        type: 'expense' as const,
+      })),
+      ...account.destTransfers.map((transfer) => ({
+        amount: transfer.amount,
+        type: 'income' as const,
+      })),
     ];
 
-    const calculatedBalance = account.balance + calculateAccountBalance(transactions);
+    const calculatedBalance =
+      account.balance + calculateAccountBalance(transactions);
 
     return {
       accountId: id,

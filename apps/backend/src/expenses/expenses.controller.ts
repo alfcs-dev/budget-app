@@ -10,7 +10,10 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
-import { CreateExpenseSchema, UpdateExpenseSchema } from '@budget-manager/database';
+import {
+  CreateExpenseSchema,
+  UpdateExpenseSchema,
+} from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
 
 @Controller('expenses')
@@ -28,7 +31,7 @@ export class ExpensesController {
     @Query('userId') userId?: string,
     @Query('budgetId') budgetId?: string,
     @Query('categoryId') categoryId?: string,
-    @Query('period') period?: 'week' | 'month' | 'year'
+    @Query('period') period?: 'week' | 'month' | 'year',
   ) {
     return this.expensesService.findAll(userId, budgetId, categoryId, period);
   }
@@ -36,7 +39,7 @@ export class ExpensesController {
   @Get('category/:categoryId')
   getCategoryExpenses(
     @Param('categoryId') categoryId: string,
-    @Query('period') period?: 'week' | 'month' | 'year'
+    @Query('period') period?: 'week' | 'month' | 'year',
   ) {
     return this.expensesService.getCategoryExpenses(categoryId, period);
   }
@@ -45,22 +48,26 @@ export class ExpensesController {
   getBudgetUtilization(
     @Param('budgetId') budgetId: string,
     @Query('limit') limit: string,
-    @Query('period') period?: 'week' | 'month' | 'year'
+    @Query('period') period?: 'week' | 'month' | 'year',
   ) {
     const budgetLimit = parseFloat(limit) || 0;
-    return this.expensesService.getBudgetUtilization(budgetId, budgetLimit, period);
+    return this.expensesService.getBudgetUtilization(
+      budgetId,
+      budgetLimit,
+      period,
+    );
   }
 
   @Get('date-range')
   getExpensesByDateRange(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('userId') userId?: string
+    @Query('userId') userId?: string,
   ) {
     return this.expensesService.getExpensesByDateRange(
       new Date(startDate),
       new Date(endDate),
-      userId
+      userId,
     );
   }
 

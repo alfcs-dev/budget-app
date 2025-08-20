@@ -34,9 +34,9 @@ export class ExpensesService {
     userId?: string,
     budgetId?: string,
     categoryId?: string,
-    period?: 'week' | 'month' | 'year'
+    period?: 'week' | 'month' | 'year',
   ): Promise<Expense[]> {
-    let where: any = {};
+    const where: any = {};
 
     if (budgetId) {
       where.budgetId = budgetId;
@@ -110,8 +110,11 @@ export class ExpensesService {
   }
 
   // Business logic methods using shared utilities
-  async getCategoryExpenses(categoryId: string, period?: 'week' | 'month' | 'year') {
-    let where: any = { categoryId };
+  async getCategoryExpenses(
+    categoryId: string,
+    period?: 'week' | 'month' | 'year',
+  ) {
+    const where: any = { categoryId };
 
     // Filter by date period using shared utility
     if (period) {
@@ -140,8 +143,12 @@ export class ExpensesService {
     };
   }
 
-  async getBudgetUtilization(budgetId: string, budgetLimit: number, period?: 'week' | 'month' | 'year') {
-    let where: any = { budgetId };
+  async getBudgetUtilization(
+    budgetId: string,
+    budgetLimit: number,
+    period?: 'week' | 'month' | 'year',
+  ) {
+    const where: any = { budgetId };
 
     // Filter by date period using shared utility
     if (period) {
@@ -172,8 +179,12 @@ export class ExpensesService {
     };
   }
 
-  async getExpensesByDateRange(startDate: Date, endDate: Date, userId?: string) {
-    let where: any = {
+  async getExpensesByDateRange(
+    startDate: Date,
+    endDate: Date,
+    userId?: string,
+  ) {
+    const where: any = {
       date: {
         gte: startDate,
         lte: endDate,

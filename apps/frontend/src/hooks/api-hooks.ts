@@ -22,7 +22,7 @@ export const queryKeys = {
   account: (id: string) => ['accounts', id] as const,
   accountBalance: (id: string) => ['accounts', id, 'balance'] as const,
   expenses: ['expenses'] as const,
-  expensesByParams: (params: Record<string, any>) => ['expenses', params] as const,
+  expensesByParams: (params: Record<string, unknown>) => ['expenses', params] as const,
   expense: (id: string) => ['expenses', id] as const,
   categoryExpenses: (categoryId: string, period?: string) =>
     ['expenses', 'category', categoryId, period] as const,
