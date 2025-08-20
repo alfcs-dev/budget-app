@@ -1,5 +1,10 @@
-import { z } from 'zod';
-import { AccountType, BudgetCollaboratorRole, Currency, ExpenseStatus } from './constants';
+import { z } from "zod";
+import {
+  AccountType,
+  BudgetCollaboratorRole,
+  // Currency,
+  // ExpenseStatus,
+} from "./constants";
 
 // User schemas
 export const CreateUserSchema = z.object({
@@ -15,7 +20,12 @@ export const UpdateUserSchema = z.object({
 // Account schemas
 export const CreateAccountSchema = z.object({
   accountName: z.string().min(1),
-  type: z.enum([AccountType.DEBIT, AccountType.CREDIT, AccountType.SAVINGS, AccountType.CASH]),
+  type: z.enum([
+    AccountType.DEBIT,
+    AccountType.CREDIT,
+    AccountType.SAVINGS,
+    AccountType.CASH,
+  ]),
   bank: z.string().optional(),
   accountNumber: z.string().optional(),
   clabe: z.string().optional(),
@@ -25,7 +35,14 @@ export const CreateAccountSchema = z.object({
 
 export const UpdateAccountSchema = z.object({
   accountName: z.string().min(1).optional(),
-  type: z.enum([AccountType.DEBIT, AccountType.CREDIT, AccountType.SAVINGS, AccountType.CASH]).optional(),
+  type: z
+    .enum([
+      AccountType.DEBIT,
+      AccountType.CREDIT,
+      AccountType.SAVINGS,
+      AccountType.CASH,
+    ])
+    .optional(),
   bank: z.string().optional(),
   accountNumber: z.string().optional(),
   clabe: z.string().optional(),
@@ -94,11 +111,19 @@ export const UpdateTransferSchema = z.object({
 export const CreateBudgetCollaboratorSchema = z.object({
   budgetId: z.string().uuid(),
   userId: z.string().uuid(),
-  role: z.enum([BudgetCollaboratorRole.VIEWER, BudgetCollaboratorRole.EDITOR, BudgetCollaboratorRole.MANAGER]),
+  role: z.enum([
+    BudgetCollaboratorRole.VIEWER,
+    BudgetCollaboratorRole.EDITOR,
+    BudgetCollaboratorRole.MANAGER,
+  ]),
 });
 
 export const UpdateBudgetCollaboratorSchema = z.object({
-  role: z.enum([BudgetCollaboratorRole.VIEWER, BudgetCollaboratorRole.EDITOR, BudgetCollaboratorRole.MANAGER]),
+  role: z.enum([
+    BudgetCollaboratorRole.VIEWER,
+    BudgetCollaboratorRole.EDITOR,
+    BudgetCollaboratorRole.MANAGER,
+  ]),
 });
 
 // Type exports
@@ -114,5 +139,9 @@ export type CreateExpense = z.infer<typeof CreateExpenseSchema>;
 export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>;
 export type CreateTransfer = z.infer<typeof CreateTransferSchema>;
 export type UpdateTransfer = z.infer<typeof UpdateTransferSchema>;
-export type CreateBudgetCollaborator = z.infer<typeof CreateBudgetCollaboratorSchema>;
-export type UpdateBudgetCollaborator = z.infer<typeof UpdateBudgetCollaboratorSchema>;
+export type CreateBudgetCollaborator = z.infer<
+  typeof CreateBudgetCollaboratorSchema
+>;
+export type UpdateBudgetCollaborator = z.infer<
+  typeof UpdateBudgetCollaboratorSchema
+>;

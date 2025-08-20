@@ -1,11 +1,10 @@
-// Re-export Prisma
-export { PrismaClient } from '@prisma/client';
-export * from '@prisma/client';
+export { PrismaClient } from "@prisma/client";
+export * from "@prisma/client";
 
 // Export our custom utilities, constants, and schemas
-export * from './constants';
-export * from './schemas';
-export * from './utils';
+export * from "./constants";
+export * from "./schemas";
+export * from "./utils";
 
 // Export seeding functionality
-export * from './seed';
+export * from "./seed";
