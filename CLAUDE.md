@@ -71,3 +71,4 @@ Key entities: User, Account (financial accounts), Category (expense categories),
 - **Database issues**: Restart with `docker-compose down -v && docker-compose up postgres -d`
 - **Dependencies**: Run `npm install` in root, backend, and frontend directories
 - **Type errors**: Run `npm run db:generate` after schema changes
+- run every npm command in this project with a previous slash i.e. \npm run dev, \npm install
