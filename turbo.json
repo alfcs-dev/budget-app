@@ -52,8 +52,17 @@
       "cache": false
     },
     "db:migrate": {
+      "dependsOn": [
+        "db:generate"
+      ],
       "cache": false,
       "persistent": true
+    },
+    "db:seed": {
+      "dependsOn": [
+        "db:generate"
+      ],
+      "cache": false
     }
   }
 }

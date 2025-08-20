@@ -1,5 +1,5 @@
 {
-  "name": "@expense-tracker/eslint-config",
+  "name": "@budget-manager/eslint-config",
   "version": "0.0.0",
   "private": true,
   "main": "index.js",

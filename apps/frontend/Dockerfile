@@ -2,16 +2,28 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package files (for monorepo)
+# Copy root package files and workspace config
 COPY package*.json ./
+COPY turbo.json ./
 
-# Copy frontend package files
+# Copy all package.json files for dependency resolution
+COPY packages/database/package*.json ./packages/database/
+COPY packages/eslint-config/package*.json ./packages/eslint-config/
 COPY apps/frontend/package*.json ./apps/frontend/
 
-# Install all dependencies (needed for monorepo)
-RUN npm install
+# Copy Prisma schema first (needed for database package postinstall)
+COPY packages/database/prisma ./packages/database/prisma
+
+# Install all dependencies (needed for monorepo with shared packages)
+RUN npm ci
+
+# Copy and build shared database package first
+COPY packages/database ./packages/database/
+WORKDIR /app/packages/database
+RUN npm run build
 
 # Copy frontend source code
+WORKDIR /app
 COPY apps/frontend ./apps/frontend/
 
 # Set working directory to frontend

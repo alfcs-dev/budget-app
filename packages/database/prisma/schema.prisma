@@ -1,0 +1,121 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // Output to a specific location for shared package if desired
+  // output   = "../../node_modules/@budget-monorepo/database/dist/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and ownership
+model User {
+  id             String               @id @default(uuid())
+  email          String               @unique
+  password       String // For future authentication: store hashed passwords
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  budgets        Budget[]
+  accounts       Account[] // A user owns multiple accounts
+  transfers      Transfer[] // Optional: Track transfers initiated by user
+  // Future fields for roles, profile, etc.
+  collaborations BudgetCollaborator[] // Link to budgets they collaborate on
+}
+
+// Account model: debit, credit, savings accounts
+model Account {
+  id              String     @id @default(uuid())
+  accountName     String // e.g., "HSBC Debit", "Stori+ Credit"
+  type            String // e.g., "Debit", "Credit", "Savings"
+  bank            String?
+  accountNumber   String?    @unique // Optional, but unique if provided
+  CLABE           String?    @unique // Optional, but unique if provided
+  balance         Float      @default(0.0) // Current balance of the account
+  userId          String // Owner User ID
+  user            User       @relation(fields: [userId], references: [id])
+  expenses        Expense[] // Expenses paid from this account
+  sourceTransfers Transfer[] @relation("SourceAccount")
+  destTransfers   Transfer[] @relation("DestinationAccount")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([userId, accountName]) // Ensures unique account names per user
+}
+
+// Budget model: owned by a user, can be shared later
+model Budget {
+  id            String               @id @default(uuid())
+  name          String
+  description   String?
+  ownerId       String
+  owner         User                 @relation(fields: [ownerId], references: [id])
+  categories    Category[]
+  expenses      Expense[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  // Relationship for sharing
+  collaborators BudgetCollaborator[]
+}
+
+// Category model: belongs to a budget
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  budgetId  String
+  budget    Budget    @relation(fields: [budgetId], references: [id])
+  expenses  Expense[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([name, budgetId]) // Ensures unique category names per budget
+}
+
+// Expense model: belongs to a category, a budget, and optionally linked to an account
+model Expense {
+  id          String   @id @default(uuid())
+  description String
+  amount      Float
+  date        DateTime
+  notes       String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  budgetId    String
+  budget      Budget   @relation(fields: [budgetId], references: [id])
+  accountId   String? // Optional: Account used for this expense
+  account     Account? @relation(fields: [accountId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Transfer model: tracks money movement between accounts
+model Transfer {
+  id                   String   @id @default(uuid())
+  amount               Float
+  date                 DateTime
+  description          String?
+  sourceAccountId      String
+  sourceAccount        Account  @relation("SourceAccount", fields: [sourceAccountId], references: [id])
+  destinationAccountId String
+  destinationAccount   Account  @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+  userId               String? // Optional: User initiating the transfer
+  user                 User?    @relation(fields: [userId], references: [id])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+// BudgetCollaborator: Junction table for sharing budgets with multiple users
+model BudgetCollaborator {
+  id        String   @id @default(uuid())
+  budgetId  String
+  budget    Budget   @relation(fields: [budgetId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  role      String // e.g., "viewer", "editor", "manager"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([budgetId, userId]) // A user can only have one role per budget
+}

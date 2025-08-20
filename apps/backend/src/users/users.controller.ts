@@ -1,26 +1,46 @@
-import { Controller, Get, Body, Patch, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CreateUserSchema, UpdateUserSchema } from '@budget-manager/database';
+import { ZodValidation } from '../common/pipes/zod-validation.pipe';
 
-
-@ApiTags('Users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Post()
+  @UsePipes(ZodValidation(CreateUserSchema))
+  create(@Body() createUserData: any) {
+    return this.usersService.create(createUserData);
+  }
+
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
+
   @Get(':id')
-  @ApiOperation({ summary: 'Get user by ID' })
   findOne(@Param('id') id: string) {
-    return this.usersService.findById(id);
+    return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update user' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  @UsePipes(ZodValidation(UpdateUserSchema))
+  update(@Param('id') id: string, @Body() updateUserData: any) {
+    return this.usersService.update(id, updateUserData);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.usersService.remove(id);
+    return { message: 'User deleted successfully' };
   }
 }

@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   // This tells Turborepo to use this config for the root workspace
-  extends: ["@expense-tracker/eslint-config"],
+  extends: ["@budget-manager/eslint-config"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: ["./tsconfig.json", "./apps/*/tsconfig.json"],
