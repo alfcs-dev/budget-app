@@ -10,6 +10,7 @@ import {
   calculateBudgetUtilization,
   getDateRange,
   formatCurrencyMXN,
+  Prisma,
 } from '@budget-manager/database';
 
 @Injectable()
@@ -36,7 +37,7 @@ export class ExpensesService {
     categoryId?: string,
     period?: 'week' | 'month' | 'year',
   ): Promise<Expense[]> {
-    const where: any = {};
+    const where: Prisma.ExpenseWhereInput = {};
 
     if (budgetId) {
       where.budgetId = budgetId;
@@ -114,7 +115,7 @@ export class ExpensesService {
     categoryId: string,
     period?: 'week' | 'month' | 'year',
   ) {
-    const where: any = { categoryId };
+    const where: Prisma.ExpenseWhereInput = { categoryId };
 
     // Filter by date period using shared utility
     if (period) {
@@ -148,7 +149,7 @@ export class ExpensesService {
     budgetLimit: number,
     period?: 'week' | 'month' | 'year',
   ) {
-    const where: any = { budgetId };
+    const where: Prisma.ExpenseWhereInput = { budgetId };
 
     // Filter by date period using shared utility
     if (period) {
@@ -184,7 +185,7 @@ export class ExpensesService {
     endDate: Date,
     userId?: string,
   ) {
-    const where: any = {
+    const where: Prisma.ExpenseWhereInput = {
       date: {
         gte: startDate,
         lte: endDate,

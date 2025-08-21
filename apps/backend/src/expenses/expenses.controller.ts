@@ -13,6 +13,7 @@ import { ExpensesService } from './expenses.service';
 import {
   CreateExpense,
   CreateExpenseSchema,
+  UpdateExpense,
   UpdateExpenseSchema,
 } from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
@@ -79,7 +80,7 @@ export class ExpensesController {
 
   @Patch(':id')
   @UsePipes(ZodValidation(UpdateExpenseSchema))
-  update(@Param('id') id: string, @Body() updateExpenseData: any) {
+  update(@Param('id') id: string, @Body() updateExpenseData: UpdateExpense) {
     return this.expensesService.update(id, updateExpenseData);
   }
 

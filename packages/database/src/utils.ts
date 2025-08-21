@@ -103,8 +103,8 @@ export function validateUniqueCategoryName(
 }
 
 // Currency helpers
-export function formatCurrency(amount: number, currency: string = "USD") {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(amount: number, currency: string = "MXN") {
+  return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency,
   }).format(amount);
