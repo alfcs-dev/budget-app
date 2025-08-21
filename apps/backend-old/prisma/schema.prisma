@@ -1,0 +1,229 @@
+// apps/backend/prisma/schema.prisma
+// Updated schema with Household support for shared budgets
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  INVESTMENT
+  CASH
+}
+
+enum BudgetPeriod {
+  MONTHLY
+  BIWEEKLY
+  ANNUAL
+}
+
+enum HouseholdRole {
+  OWNER // Can delete household, manage all aspects
+  ADMIN // Can manage budgets, accounts, invite members
+  MEMBER // Can create/edit budgets and expenses
+  VIEWER // Read-only access
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations - Personal items
+  personalAccounts   Account[]  @relation("PersonalAccounts")
+  personalCategories Category[] @relation("PersonalCategories")
+  personalBudgets    Budget[]   @relation("PersonalBudgets")
+  expenses           Expense[]
+  transfers          Transfer[]
+
+  // Relations - Household membership
+  households HouseholdMember[]
+
+  @@map("users")
+}
+
+model Household {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members    HouseholdMember[]
+  accounts   Account[]         @relation("HouseholdAccounts")
+  categories Category[]        @relation("HouseholdCategories")
+  budgets    Budget[]          @relation("HouseholdBudgets")
+
+  @@map("households")
+}
+
+model HouseholdMember {
+  id          String        @id @default(cuid())
+  userId      String
+  householdId String
+  role        HouseholdRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, householdId])
+  @@index([userId])
+  @@index([householdId])
+  @@map("household_members")
+}
+
+model Account {
+  id            String      @id @default(cuid())
+  name          String
+  type          AccountType
+  bankCode      String?
+  accountNumber String?
+  clabe         String?     @unique
+  balance       Decimal     @db.Decimal(12, 2)
+  isActive      Boolean     @default(true)
+  description   String?
+
+  // Ownership - either personal OR household (not both)
+  userId      String? // Null for household accounts
+  householdId String? // Null for personal accounts
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user          User?      @relation("PersonalAccounts", fields: [userId], references: [id], onDelete: Cascade)
+  household     Household? @relation("HouseholdAccounts", fields: [householdId], references: [id], onDelete: Cascade)
+  expenses      Expense[]
+  transfersFrom Transfer[] @relation("TransferFrom")
+  transfersTo   Transfer[] @relation("TransferTo")
+
+  @@index([userId])
+  @@index([householdId])
+  @@map("accounts")
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  parentId    String?
+  color       String?
+  icon        String?
+  isActive    Boolean @default(true)
+
+  // Ownership - either personal OR household (not both)
+  userId      String? // Null for household categories
+  householdId String? // Null for personal categories
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User?      @relation("PersonalCategories", fields: [userId], references: [id], onDelete: Cascade)
+  household Household? @relation("HouseholdCategories", fields: [householdId], references: [id], onDelete: Cascade)
+  parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+  expenses  Expense[]
+  budgets   Budget[]
+
+  // Unique constraint for personal categories
+  @@unique([name, userId])
+  // Unique constraint for household categories  
+  @@unique([name, householdId])
+  @@index([userId])
+  @@index([householdId])
+  @@map("categories")
+}
+
+model Expense {
+  id                String   @id @default(cuid())
+  description       String
+  amount            Decimal  @db.Decimal(12, 2)
+  date              DateTime
+  isRecurring       Boolean  @default(false)
+  recurringInterval String?
+  notes             String?
+  receiptUrl        String?
+  categoryId        String
+  accountId         String
+  userId            String // Always tied to specific user who made expense
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+  account  Account  @relation(fields: [accountId], references: [id])
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([accountId])
+  @@index([date])
+  @@map("expenses")
+}
+
+model Budget {
+  id         String       @id @default(cuid())
+  name       String
+  amount     Decimal      @db.Decimal(12, 2)
+  period     BudgetPeriod
+  startDate  DateTime
+  endDate    DateTime
+  isActive   Boolean      @default(true)
+  categoryId String
+
+  // Ownership - either personal OR household (not both)
+  userId      String? // Null for household budgets
+  householdId String? // Null for personal budgets
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User?      @relation("PersonalBudgets", fields: [userId], references: [id], onDelete: Cascade)
+  household Household? @relation("HouseholdBudgets", fields: [householdId], references: [id], onDelete: Cascade)
+  category  Category   @relation(fields: [categoryId], references: [id])
+
+  // Unique constraints
+  @@unique([categoryId, userId, period])
+  @@unique([categoryId, householdId, period])
+  @@index([userId])
+  @@index([householdId])
+  @@index([isActive])
+  @@map("budgets")
+}
+
+model Transfer {
+  id            String   @id @default(cuid())
+  amount        Decimal  @db.Decimal(12, 2)
+  description   String
+  date          DateTime
+  notes         String?
+  fromAccountId String
+  toAccountId   String
+  userId        String // User who initiated the transfer
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromAccount Account @relation("TransferFrom", fields: [fromAccountId], references: [id])
+  toAccount   Account @relation("TransferTo", fields: [toAccountId], references: [id])
+
+  @@index([userId])
+  @@index([date])
+  @@map("transfers")
+}

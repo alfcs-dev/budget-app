@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ["@expense-tracker/eslint-config/react"],
+  extends: ["@budget-manager/eslint-config/react"],
   parserOptions: {
     project: ['./tsconfig.json', './tsconfig.node.json'],
     tsconfigRootDir: __dirname,
