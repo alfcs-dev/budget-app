@@ -18,7 +18,7 @@ export class UsersController {
 
   @Post()
   @UsePipes(ZodValidation(CreateUserSchema))
-  create(@Body() createUserData: any) {
+  create(@Body() createUserData: CreateUser) {
     return this.usersService.create(createUserData);
   }
 
