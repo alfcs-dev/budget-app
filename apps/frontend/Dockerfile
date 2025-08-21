@@ -17,13 +17,8 @@ COPY packages/database/prisma ./packages/database/prisma
 # Install all dependencies (needed for monorepo with shared packages)
 RUN npm ci
 
-# Copy and build shared database package first
-COPY packages/database ./packages/database/
-WORKDIR /app/packages/database
-RUN npm run build
-
-# Copy frontend source code
-WORKDIR /app
+# Copy source code for all packages (needed for turbo build)
+COPY packages/ ./packages/
 COPY apps/frontend ./apps/frontend/
 
 # Set working directory to frontend

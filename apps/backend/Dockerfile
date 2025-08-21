@@ -17,22 +17,12 @@ COPY packages/database/prisma ./packages/database/prisma
 # Install all dependencies (needed for monorepo with shared packages)
 RUN npm ci
 
-# Copy shared database package source
-COPY packages/database ./packages/database/
-
-# Build database package first (required for backend build)
-WORKDIR /app/packages/database
-RUN npm run build
-
-# Copy backend source code
-WORKDIR /app
+# Copy source code for all packages (needed for turbo build)
+COPY packages/ ./packages/
 COPY apps/backend ./apps/backend/
 
-# Generate Prisma client (uses database package)
+# Build using turbo (handles dependencies automatically)
 WORKDIR /app/apps/backend
-RUN npx prisma generate --schema=../../packages/database/prisma/schema.prisma
-
-# Build the backend application
 RUN npm run build
 
 # Production stage
