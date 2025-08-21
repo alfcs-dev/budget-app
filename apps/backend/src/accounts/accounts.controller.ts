@@ -13,6 +13,7 @@ import { AccountsService } from './accounts.service';
 import {
   CreateAccount,
   CreateAccountSchema,
+  UpdateAccount,
   UpdateAccountSchema,
 } from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
@@ -49,7 +50,7 @@ export class AccountsController {
 
   @Patch(':id')
   @UsePipes(ZodValidation(UpdateAccountSchema))
-  update(@Param('id') id: string, @Body() updateAccountData: any) {
+  update(@Param('id') id: string, @Body() updateAccountData: UpdateAccount) {
     return this.accountsService.update(id, updateAccountData);
   }
 

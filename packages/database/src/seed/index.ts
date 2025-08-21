@@ -1,12 +1,12 @@
-import { PrismaClient } from '@prisma/client';
-import { seedData } from './data';
+import { PrismaClient } from "@prisma/client";
+import { seedData } from "./data";
 
 export async function seedDatabase(prisma: PrismaClient) {
-  console.log('🌱 Starting database seeding...');
+  console.log("🌱 Starting database seeding...");
 
   try {
     // Clear existing data
-    console.log('🧹 Clearing existing data...');
+    console.log("🧹 Clearing existing data...");
     await prisma.transfer.deleteMany();
     await prisma.expense.deleteMany();
     await prisma.category.deleteMany();
@@ -16,7 +16,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     await prisma.user.deleteMany();
 
     // Seed users
-    console.log('👤 Seeding users...');
+    console.log("👤 Seeding users...");
     for (const user of seedData.users) {
       await prisma.user.create({
         data: user,
@@ -24,7 +24,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     }
 
     // Seed accounts
-    console.log('🏦 Seeding accounts...');
+    console.log("🏦 Seeding accounts...");
     for (const account of seedData.accounts) {
       const { clabe, ...accountData } = account;
       await prisma.account.create({
@@ -37,7 +37,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     }
 
     // Seed budgets
-    console.log('💰 Seeding budgets...');
+    console.log("💰 Seeding budgets...");
     for (const budget of seedData.budgets) {
       await prisma.budget.create({
         data: budget,
@@ -45,7 +45,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     }
 
     // Seed categories
-    console.log('📂 Seeding categories...');
+    console.log("📂 Seeding categories...");
     for (const category of seedData.categories) {
       await prisma.category.create({
         data: category,
@@ -53,7 +53,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     }
 
     // Seed expenses
-    console.log('💸 Seeding expenses...');
+    console.log("💸 Seeding expenses...");
     for (const expense of seedData.expenses) {
       await prisma.expense.create({
         data: expense,
@@ -61,15 +61,15 @@ export async function seedDatabase(prisma: PrismaClient) {
     }
 
     // Seed transfers
-    console.log('🔄 Seeding transfers...');
+    console.log("🔄 Seeding transfers...");
     for (const transfer of seedData.transfers) {
       await prisma.transfer.create({
         data: transfer,
       });
     }
 
-    console.log('✅ Database seeding completed successfully!');
-    
+    console.log("✅ Database seeding completed successfully!");
+
     // Print summary
     const counts = await Promise.all([
       prisma.user.count(),
@@ -89,13 +89,12 @@ export async function seedDatabase(prisma: PrismaClient) {
    💸 Expenses: ${counts[4]}
    🔄 Transfers: ${counts[5]}
     `);
-
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error("❌ Error seeding database:", error);
     throw error;
   }
 }
 
 // Export for use in scripts
-export { seedData } from './data';
-export * from './types';
+export { seedData } from "./data";
+export * from "./types";

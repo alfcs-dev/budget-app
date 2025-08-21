@@ -21,7 +21,8 @@ RUN npm ci
 COPY packages/ ./packages/
 COPY apps/backend ./apps/backend/
 
-# Build using turbo (handles dependencies automatically)
+# Build database package first, then backend
+RUN npm run build --filter=@budget-manager/database
 WORKDIR /app/apps/backend
 RUN npm run build
 

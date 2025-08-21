@@ -12,6 +12,7 @@ import { UsersService } from './users.service';
 import {
   CreateUser,
   CreateUserSchema,
+  UpdateUser,
   UpdateUserSchema,
 } from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
@@ -38,7 +39,7 @@ export class UsersController {
 
   @Patch(':id')
   @UsePipes(ZodValidation(UpdateUserSchema))
-  update(@Param('id') id: string, @Body() updateUserData: any) {
+  update(@Param('id') id: string, @Body() updateUserData: UpdateUser) {
     return this.usersService.update(id, updateUserData);
   }
 
