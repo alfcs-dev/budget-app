@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import {
+  CreateAccount,
   CreateAccountSchema,
   UpdateAccountSchema,
 } from '@budget-manager/database';
@@ -22,7 +23,7 @@ export class AccountsController {
 
   @Post()
   @UsePipes(ZodValidation(CreateAccountSchema))
-  create(@Body() createAccountData: any) {
+  create(@Body() createAccountData: CreateAccount) {
     return this.accountsService.create(createAccountData);
   }
 

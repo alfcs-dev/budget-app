@@ -88,3 +88,7 @@ temp/
 
 # Prisma
 prisma/migrations/**/migration.sql.bak
+
+*.xlsx
+seed.sh
+checklist.sh

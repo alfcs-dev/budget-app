@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import {
+  CreateExpense,
   CreateExpenseSchema,
   UpdateExpenseSchema,
 } from '@budget-manager/database';
@@ -22,7 +23,7 @@ export class ExpensesController {
 
   @Post()
   @UsePipes(ZodValidation(CreateExpenseSchema))
-  create(@Body() createExpenseData: any) {
+  create(@Body() createExpenseData: CreateExpense) {
     return this.expensesService.create(createExpenseData);
   }
 

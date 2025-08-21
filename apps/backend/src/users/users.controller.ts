@@ -9,7 +9,11 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserSchema, UpdateUserSchema } from '@budget-manager/database';
+import {
+  CreateUser,
+  CreateUserSchema,
+  UpdateUserSchema,
+} from '@budget-manager/database';
 import { ZodValidation } from '../common/pipes/zod-validation.pipe';
 
 @Controller('users')
