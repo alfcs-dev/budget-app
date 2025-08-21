@@ -6,7 +6,8 @@ export const seedData: SeedData = {
     {
       id: 'user-1',
       email: 'demo@budget-app.com',
-      password: '$2b$10$YnSrOei7fb5KHc89dAnO/ubZY5dp2M.A9L6XEt4g8264nJ5pim6I2', // hashed "password123"
+      // Use environment variable for password hash in production; fallback is for local development only.
+      password: process.env.SEED_USER_PASSWORD_HASH || '$2b$10$YnSrOei7fb5KHc89dAnO/ubZY5dp2M.A9L6XEt4g8264nJ5pim6I2', // hashed "password123"
     },
   ],
 
