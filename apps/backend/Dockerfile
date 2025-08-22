@@ -22,9 +22,9 @@ COPY packages/ ./packages/
 COPY apps/backend ./apps/backend/
 
 # Build database package first, then backend
-RUN npm run build --filter=@budget-manager/database
-WORKDIR /app/apps/backend
-RUN npm run build
+RUN npx turbo build --filter=@budget-manager/database
+WORKDIR /app/apps/backend  
+RUN npx turbo build --filter=@budget-manager/backend
 
 # Production stage
 FROM node:18-alpine AS production
@@ -41,6 +41,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nestjs:nodejs /app/packages/database/dist ./node_modules/@budget-manager/database/dist
 
 # Copy package.json for runtime dependencies
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/package*.json ./

@@ -21,7 +21,7 @@ import { ZodValidation } from '../common/pipes/zod-validation.pipe';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('create')
   @UsePipes(ZodValidation(CreateUserSchema))
   create(@Body() createUserData: CreateUser) {
     return this.usersService.create(createUserData);
