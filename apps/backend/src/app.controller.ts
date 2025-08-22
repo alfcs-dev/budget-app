@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
+import { Public } from './auth/public.decorator';
 
 @Controller()
 export class AppController {
@@ -9,11 +10,13 @@ export class AppController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @Public()
   @Get()
   getHello(): string {
     return this.appService.getHello();
   }
 
+  @Public()
   @Get('health')
   async getHealth() {
     try {
