@@ -25,13 +25,18 @@ COPY apps/backend ./apps/backend/
 # (required at runtime when importing PrismaClient from @prisma/client)
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 
-# Build database package first, then backend (direct Nest build)
-RUN npm run build --filter=@budget-manager/database
-WORKDIR /app/apps/backend
-RUN npm run build
+# Build with Turbo (same as local). Force run so Docker cache doesn’t skip the task.
+ENV TURBO_FORCE=1
+RUN npm run build --filter=@budget-manager/backend
 
-# Fail the build if backend dist was not produced
-RUN test -f /app/apps/backend/dist/main.js || (echo "ERROR: backend build did not produce dist/main.js" && exit 1)
+# Show what was produced (for debugging)
+RUN echo "=== backend dist contents ===" && ls -laR /app/apps/backend/dist 2>/dev/null || true
+
+# Accept dist/main.js or dist/src/main.js (Nest can emit either depending on config)
+RUN if [ -f /app/apps/backend/dist/main.js ]; then echo "OK: dist/main.js"; \
+  elif [ -f /app/apps/backend/dist/src/main.js ]; then \
+    cp -r /app/apps/backend/dist/src/. /app/apps/backend/dist/ && rm -rf /app/apps/backend/dist/src && echo "OK: normalized from dist/src/"; \
+  else echo "ERROR: no main.js in dist or dist/src" && ls -laR /app/apps/backend/dist 2>/dev/null; exit 1; fi
 
 # Production stage
 FROM node:18-alpine AS production

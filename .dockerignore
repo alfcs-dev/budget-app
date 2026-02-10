@@ -1,0 +1,29 @@
+# Dependencies and build output (use container’s npm ci and build)
+node_modules
+**/node_modules
+**/dist
+**/.turbo
+.next
+**/build
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+*.md
+!README.md
+
+# Env and secrets (use build args or compose env)
+.env
+.env.*
+!.env.example
+
+# Tests and misc (not needed for production image)
+**/*.spec.ts
+**/*.test.ts
+**/test
+**/__tests__
+coverage
+*.log
+npm-debug.log*
