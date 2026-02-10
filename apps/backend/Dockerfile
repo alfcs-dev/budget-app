@@ -21,18 +21,20 @@ RUN npm ci
 COPY packages/ ./packages/
 COPY apps/backend ./apps/backend/
 
-# Build database package first, then backend
+# Build database package first, then backend (from root so Turbo/workspace deps work)
 RUN npm run build --filter=@budget-manager/database
-WORKDIR /app/apps/backend
-RUN npm run build
+RUN npm run build --filter=@budget-manager/backend
+
+# Fail the build if backend dist was not produced
+RUN test -f /app/apps/backend/dist/main.js || (echo "ERROR: backend build did not produce dist/main.js" && exit 1)
 
 # Production stage
 FROM node:18-alpine AS production
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and curl (for healthcheck)
+RUN apk add --no-cache dumb-init curl
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
