@@ -21,15 +21,16 @@ RUN npm ci
 COPY packages/ ./packages/
 COPY apps/frontend ./apps/frontend/
 
-# Set working directory to frontend
-WORKDIR /app/apps/frontend
+# Ensure Prisma client is generated (database package dependency)
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 
 # Set production API URL (can be overridden at build time)
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
-# Build the application
-RUN npm run build
+# Build with Turbo (builds @budget-manager/database first, then frontend)
+ENV TURBO_FORCE=1
+RUN npm run build --filter=@budget-manager/frontend
 
 # Production stage
 FROM nginx:alpine
