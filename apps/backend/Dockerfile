@@ -49,11 +49,11 @@ RUN apk add --no-cache dumb-init curl
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 
-# Copy built application from builder stage
+# Copy built application and full node_modules (monorepo hoists deps to root)
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/dist ./dist
-COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/node_modules ./node_modules
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+# Resolve workspace symlink @budget-manager/database -> ../../packages/database
+COPY --from=builder --chown=nestjs:nodejs /app/packages/database ./packages/database
 
 # Copy package.json for runtime dependencies
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/package*.json ./
