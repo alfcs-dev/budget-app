@@ -113,6 +113,14 @@ cat > "$NGINX_CONFIG_DIR/sites-available/budget.alfcs.dev" << 'EOF'
 limit_req_zone $binary_remote_addr zone=expense_api:10m rate=10r/s;
 limit_req_zone $binary_remote_addr zone=expense_auth:10m rate=5r/s;
 
+# Default server: catch IP or wrong Host so we don't get 400 Bad Request
+server {
+    listen 80 default_server;
+    server_name _;
+    return 200 'Use https://budget.alfcs.dev for the Budget App\n';
+    add_header Content-Type text/plain;
+}
+
 # Subdomain: budget.alfcs.dev (Expense Tracker)
 server {
     listen 80;

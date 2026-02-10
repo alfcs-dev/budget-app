@@ -21,9 +21,14 @@ RUN npm ci
 COPY packages/ ./packages/
 COPY apps/backend ./apps/backend/
 
-# Build database package first, then backend (from root so Turbo/workspace deps work)
+# Ensure Prisma client is generated into root node_modules/.prisma
+# (required at runtime when importing PrismaClient from @prisma/client)
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
+
+# Build database package first, then backend (direct Nest build)
 RUN npm run build --filter=@budget-manager/database
-RUN npm run build --filter=@budget-manager/backend
+WORKDIR /app/apps/backend
+RUN npm run build
 
 # Fail the build if backend dist was not produced
 RUN test -f /app/apps/backend/dist/main.js || (echo "ERROR: backend build did not produce dist/main.js" && exit 1)
@@ -43,6 +48,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 
 # Copy package.json for runtime dependencies
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/package*.json ./
